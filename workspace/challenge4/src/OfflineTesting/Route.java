@@ -76,10 +76,22 @@ public class Route implements Comparable<Route>{
       return -1;
     }
 
-    int matchCount = matchingBits(ip);
-    return (matchCount < prefixLength ? 0 : prefixLength);
+    if(this.ip == ip) {
+      return 0;
+    } else {
+      if ((this.ip < ip) ^ (this.ip < 0) ^ (ip < 0)) {
+        return -1;
+      } else {
+        return 1;
+      }
+    }
   }
 
+  /*
+   If the instance is equal to the argument then 0 is returned.
+   If the instance is less than the argument then -1 is returned.
+   If the instance is greater than the argument then 1 is returned.
+  */
   public int compareTo(String ipString) {
     if(this == null){
       return -1;
@@ -97,6 +109,5 @@ public class Route implements Comparable<Route>{
   @Override
   public String toString() {
     return Utils.ipToHuman(ip) + "/" + prefixLength + ":" + port;
-    //return getNetworkHeader() + ":" + port;
   }
 }

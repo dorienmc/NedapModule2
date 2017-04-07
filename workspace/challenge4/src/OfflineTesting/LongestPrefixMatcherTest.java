@@ -19,6 +19,9 @@ public class LongestPrefixMatcherTest {
 
   @Test
   public void initialisation() throws Exception {
+    matcher = new LongestPrefixMatcher("routes_short.txt");
+    matcher.readRoutes();
+
     Assert.assertEquals(false,matcher.routes.isEmpty());
 
     //There is one route with prefix length 17, it has port 11

@@ -54,15 +54,9 @@ public class Utils {
       return low;
     }
 
-    //int cutOffIp = cutOff(ip,len);
-    //String ipString = toBinary32String(ip).substring(0,len);
-    long unsignedIp = Utils.getUnsignedInt(ip);
     while(low < high) {
       int mid = (low + high) / 2;
-      //String val = arr.get(mid).getIPString(len);
-      //if(cutOffIp <= cutOff(arr.get(mid).getIP(),len)) {//ipString.compareTo(val) <= 0) { //x <= a[mid]
-      long midIp = arr.get(mid).getLongIP();
-      if(unsignedIp <= midIp) {
+      if(arr.get(mid).compareTo(ip) >= 0) {
         high = mid;
       } else {
         low = mid + 1;
@@ -79,15 +73,9 @@ public class Utils {
       return low;
     }
 
-    //int cutOffIp = cutOff(ip,len);
-    //String ipString = toBinary32String(ip).substring(0,len);
-    long unsignedIp = Utils.getUnsignedInt(ip);
     while(low < high) {
       int mid = (low + high) / 2;
-      //String val = arr.get(mid).getIPString(len);
-      long midIp = arr.get(mid).getLongIP();
-      //if(cutOffIp >= cutOff(arr.get(mid).getIP(),len)) {//ipString.compareTo(val) >= 0) {
-      if(unsignedIp >= midIp) {
+      if(arr.get(mid).compareTo(ip) <= 0) {
         low = mid + 1;
       } else {
         high = mid;
@@ -119,10 +107,17 @@ public class Utils {
    */
   static int matchingBits(int routeIp,
       int ip) {
-    String diff = Integer.toBinaryString(routeIp ^ ip);
-    int diffLength = (diff.equals("0") ? 0 : diff.length());
-    //System.out.println("difference between routeIp and ip " + diff + " so they match in the first " + (32 - diff.length()) + " bits.");
-    return 32 - diffLength;
+//    String diff = Integer.toBinaryString(routeIp ^ ip);
+//    int diffLength = (diff.equals("0") ? 0 : diff.length());
+//    //System.out.println("difference between routeIp and ip " + diff + " so they match in the first " + (32 - diff.length()) + " bits.");
+//    return 32 - diffLength;
+    int diff = routeIp ^ ip;
+    int count = 0;
+    while(Utils.getUnsignedInt(diff) > 0) {
+      diff = diff >>> 1;
+      count++;
+    }
+    return 32 - count;
   }
 
   /* //An ip matches a given routeIp if the first 'prefixLength' bytes are equal. */
@@ -138,13 +133,13 @@ public class Utils {
     return (number >> (8*n)) & 0xff;
   }
 
-  static long roundIpDown(int ip, int prefixLength) {
+  static int roundIpDown(int ip, int prefixLength) {
     int mask = (1 << (32-prefixLength)) - 1; //2^(32-prefixLength) - 1
     ip = ip | mask;
     return ip - mask;
   }
 
-  static long roundIpUp(int ip, int prefixLength) {
+  static int roundIpUp(int ip, int prefixLength) {
     int mask = (1 << (32-prefixLength)) - 1; //2^(32-prefixLength) - 1
     return ip | mask;
   }

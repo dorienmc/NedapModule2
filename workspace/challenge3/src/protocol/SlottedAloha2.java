@@ -1,7 +1,6 @@
 package protocol;
 
 import java.util.Random;
-import javax.xml.soap.Node;
 
 /**
  * A fairly trivial Medium Access Control scheme.
@@ -9,58 +8,62 @@ import javax.xml.soap.Node;
  * @author Jaco ter Braak, Twente University
  * @version 05-12-2013
  */
-public class SlottedAloha implements IMACProtocol {
+public class SlottedAloha2 implements IMACProtocol {
 	static int PROB = 25;
 	NodeState prevStatus = NodeState.Idle;
 	NodeState status = NodeState.Idle;
-	private int NodeCount = 0;
+	private int prevQueueLength = 0;
 
 	@Override
 	public TransmissionInfo TimeslotAvailable(MediumState previousMediumState,
 			int controlInformation, int localQueueLength) {
+
 		//Update status
-		if(previousMediumState == MediumState.Succes) {
-			NodeCount = controlInformation;
-		}
 		updateStatus(previousMediumState, localQueueLength);
-		System.out.println("Expected no waiting nodes: " + NodeCount);
+		System.out.println("Prev in own queue" + prevQueueLength
+				+ ", Currently in own queue: " + localQueueLength);
+
+		//Determine what to do
+		TransmissionInfo info = DetermineMessage(previousMediumState, controlInformation, localQueueLength);
+
+		//Update queueLength
+		prevQueueLength = localQueueLength;
+
+		return info;
+	}
+
+	TransmissionInfo DetermineMessage(MediumState previousMediumState,
+			int controlInformation, int localQueueLength) {
 
 		// No data to send, just be quiet
 		if (localQueueLength == 0) {
-			System.out.println(NodeCount + " SLOT - No data to send.");
-
-			//Tell server the when queue becomes empty (by sending an updated NodeCount)
-			if(prevStatus == NodeState.Sending) {
-				if(NodeCount > 0) {
-					NodeCount--;
-				}
-				return new TransmissionInfo(TransmissionType.NoData, NodeCount);
-			} else {
-				return new TransmissionInfo(TransmissionType.Silent, 0);
-			}
-
+			System.out.println(" SLOT - No data to send.");
+			return new TransmissionInfo(TransmissionType.Silent, 0);
 		}
 
-		// Sent new frame immediately
-		if(status == NodeState.Idle) {
-			System.out.println(NodeCount + " SLOT - Sending new frame and hope for no collision.");
-			status = NodeState.Sending;
-			return new TransmissionInfo(TransmissionType.Data, NodeCount);
+		// Calculate PROB based on totalQueued and in own queue
+		PROB = 100 * localQueueLength / (localQueueLength + controlInformation);
+		if(controlInformation == localQueueLength || controlInformation == localQueueLength - 1) {
+			PROB *= 1.5;
 		}
+		if(previousMediumState == MediumState.Collision) {
+			PROB /= 4;
+		}
+		System.out.println("P:" + PROB);
 
-		// If waiting, randomly transmit with PROB% probability
+		// Sent frame with PROB% prob
 		if (new Random().nextInt(100) < PROB) {
-			System.out.println(NodeCount + " SLOT - Sending data and hope for no collision.");
-			return new TransmissionInfo(TransmissionType.Data, NodeCount);
+			System.out.println("SLOT - (Re)sending frame and hope for no collision.");
+			status = NodeState.Sending;
+			return new TransmissionInfo(TransmissionType.Data, localQueueLength);
 		} else {
 			if (prevStatus == NodeState.Sending && previousMediumState == MediumState.Collision) {
-				System.out.println(NodeCount + " SLOT - Tell server we are waiting.");
+				System.out.println("SLOT - Tell server we are waiting.");
 			} else {
-				System.out.println(NodeCount + " SLOT - Not sending data to give room for others.");
+				System.out.println("SLOT - Not sending data to give room for others.");
 			}
-			return new TransmissionInfo(TransmissionType.Silent, NodeCount);
+			return new TransmissionInfo(TransmissionType.Silent, localQueueLength);
 		}
-
 	}
 
 	void updateStatus(MediumState previousMediumState, int localQueueLength) {
@@ -78,14 +81,10 @@ public class SlottedAloha implements IMACProtocol {
 
 			//If node was sending and previous medium state was collission, set to waiting (for retransmission)
 			if (prevStatus == NodeState.Sending && previousMediumState == MediumState.Collision) {
-				if(NodeCount < 4) {
-					NodeCount++;
-				}
 				status = NodeState.Waiting;
 			}
 		}
 
-		PROB = 100/(NodeCount+1);
 	}
 
 }

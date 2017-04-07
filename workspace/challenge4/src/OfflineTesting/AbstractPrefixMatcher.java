@@ -56,6 +56,7 @@ public abstract class AbstractPrefixMatcher {
       String line;
       while ((line = br.readLine()) != null) {
         this.parseRoute(line);
+        nRoutes++;
       }
     } catch (IOException e) {
       System.err.println("Could not open " + routesFile);

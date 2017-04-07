@@ -6,14 +6,15 @@ import java.util.Map;
 //		#	Startup T1	T2		T3		T4	T5	T6	Total	Lookups/s	# Hints
 //1. 53	2.04	0.17	1.46	10.25	DNF	-		-		11.88	22.2			0
 //2. 53	2.04	0.17	1.46	10.25	DNF	-		-		11.88	22.2			0
-
+//3. 53	2.11	0.03	1.19	10.10	DNF	-		-		11.32	23.3			0
+//4. 53	2.11	0.03	1.19	10.10	DNF	-		-		11.32	23.3			0
 class LongestPrefixMatcher extends AbstractPrefixMatcher {
 
 	// TODO: Request access token from your student assistant
-	public static final String ACCESS_TOKEN = "S1113747_ow7m6";//"s0179841_b1r1f";//"S1113747_ow7m6";
-	public static final String ROUTES_FILE = "routes_short.txt";
+	public static final String ACCESS_TOKEN = "s0166367_vs7hk";
+	public static final String ROUTES_FILE = "routes.txt";
 	public static final String LOOKUP_FILE = "lookup.txt";
-	public static final boolean DEBUG = false;
+	public static final boolean DEBUG = true;
 	public static final boolean RAND = false;
 	private int minPrefixLength = 8;
 	private int maxPrefixLength = 8;
@@ -62,8 +63,7 @@ class LongestPrefixMatcher extends AbstractPrefixMatcher {
 		//Find index for this route
 		if(routes.get(prefixLength).size() == 0) {
 			routes.get(prefixLength).add(new Route(ip, prefixLength, portNumber));
-		} else if (routes.get(prefixLength).peekLast().getLongIP() <= Utils.getUnsignedInt(ip)) {
-			//else if(routes.get(prefixLength).peekLast().compareTo(Utils.toBinary32String(ip)) < 0) {
+		} else if (routes.get(prefixLength).peekLast().compareTo(ip) <= 0) {
 			routes.get(prefixLength).add(new Route(ip, prefixLength, portNumber));
 		} else {
 			int id = Utils.bs_lower_bound(routes.get(prefixLength),ip);
@@ -100,17 +100,12 @@ class LongestPrefixMatcher extends AbstractPrefixMatcher {
 
 		int nRoutes = routes.get(prefixLength).size();
 
-		long ipLow = Utils.roundIpDown(ip,prefixLength);
-		long ipHigh = Utils.roundIpUp(ip,prefixLength);
-		//System.out.println("Prefix " + prefixLength + ", Search between " + Utils.ipToHuman((int)ipLow) + " and " + Utils.ipToHuman((int)ipHigh));
-
-		int idLow = Utils.bs_lower_bound(routes.get(prefixLength),(int)ipLow);
+		int idLow = Utils.bs_lower_bound(routes.get(prefixLength),Utils.roundIpDown(ip,prefixLength));
 		if(idLow < nRoutes) {
-			int idHigh = Utils.bs_upper_bound(routes.get(prefixLength),(int)ipHigh,0,idLow,nRoutes);
+			int idHigh = Utils.bs_upper_bound(routes.get(prefixLength),Utils.roundIpUp(ip,prefixLength),0,idLow,nRoutes);
 			if(idHigh <= nRoutes) {
 				for(int i = idLow; i < idHigh; i++) {
 					Route r = routes.get(prefixLength).get(i);
-					//System.out.println(routes.get(prefixLength).get(i) + " matches in " + r.matchingBits(ip) + " bits");
 					if(r.matchingBits(ip) >= prefixLength) {
 						return r;
 					}

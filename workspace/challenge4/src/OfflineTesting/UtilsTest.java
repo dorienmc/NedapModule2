@@ -173,16 +173,5 @@ public class UtilsTest {
 
     Assert.assertEquals(ip - 257, Utils.roundIpDown(ip,23)); //1.1 -> //0 00000000
     Assert.assertEquals(ip + 254, Utils.roundIpUp(ip,23)); //1.1 -> //1 11111111
-
-    System.out.println(ip);
-    System.out.println(Utils.getUnsignedInt(ip));
-    System.out.println(Utils.roundIpDown(ip,31));
-    System.out.println(Utils.roundIpUp(ip,31));
   }
-
-  //	long tmp = Utils.getUnsignedInt(ip) % ((int)Math.pow(2, 32 - prefixLength) - 1);
-//  long ipLow = Utils.getUnsignedInt(ip) - tmp;
-//  long ipHigh = ipLow + (int)Math.pow(2, 32 - prefixLength) - 1;
-//		System.out.println("Prefix " + prefixLength + ", Search between " + Utils.ipToHuman((int)ipLow) + " and " + Utils.ipToHuman((int)ipHigh));
-
 }
